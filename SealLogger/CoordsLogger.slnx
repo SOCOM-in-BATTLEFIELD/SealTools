@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="CoordsLogger.vcxproj" Id="6427e4f8-e958-462d-bb54-cb9c7d91e1a7" />
+</Solution>
