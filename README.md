@@ -116,7 +116,7 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 ## 🔗 Dependencies
 
 - [Dear ImGui](https://github.com/ocornut/imgui) - UI framework
-- [exMemory](https://github.com/Shuzhengz/exMemory) - Memory reading library with PCSX2 extensions
+- [exMemory](https://github.com/NightFyre/exMemory) - Memory reading library with PCSX2 extensions
 
 ## ⚠️ Disclaimer
 
