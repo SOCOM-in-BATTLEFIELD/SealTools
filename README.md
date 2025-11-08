@@ -28,7 +28,7 @@ A real-time coordinate logger for SOCOM (SOCOM II & SOCOM: Combined Assault) run
 5. Use "ADD POSITION TO LIST" to capture coordinates
 6. Use "LIST SAVED POSITIONS" to export captured data
 
-### SealMapper *(Coming Soon)*
+### SealMapper
 A Godot plugin that imports coordinate data exported from SealLogger, enabling visual map reconstruction and analysis within the Godot engine.
 <p align="center">
   <a href="https://github.com/SOCOM-in-BATTLEFIELD/SealTools">
@@ -36,17 +36,49 @@ A Godot plugin that imports coordinate data exported from SealLogger, enabling v
   </a>
 </p>
 
+**Features:**
+- Import CSV coordinate data from SealLogger
+- Automatically spawn 3D markers at captured positions
+- Visual map reconstruction in Godot's 3D viewport
+- Customizable marker appearance
+- Dock integration for easy access
+- Real-time coordinate visualization
+
+**Installation:**
+1. Copy the `SealMapper` folder to your Godot project's `addons/` directory
+2. In Godot, go to **Project → Project Settings → Plugins**
+3. Enable the **SealMapper** plugin
+4. The SealMapper dock will appear in the bottom-left panel
+
+**Usage:**
+1. Export coordinates from SealLogger to a CSV file
+2. Place the CSV file at `res://addons/SealMapper/coordinates.csv` (or configure custom path)
+3. Click the **SealMapper** button in the dock
+4. 3D markers will be spawned at each coordinate position in your current scene
+
 ## 🚀 Getting Started
 
 ### Prerequisites
+
+**For SealLogger:**
 - Windows OS
 - PCSX2 emulator
 - SOCOM II or SOCOM: Combined Assault ISO
 
+**For SealMapper:**
+- Godot 4.x
+
 ### Installation
+
+**SealLogger:**
 1. Download the latest release from the [Releases](../../releases) page
 2. Extract the archive
-3. Run the desired tool
+3. Run `SealLogger.exe`
+
+**SealMapper:**
+1. Download the SealMapper plugin from the [Releases](../../releases) page
+2. Extract to your Godot project's `addons/` directory
+3. Enable the plugin in Godot's Project Settings → Plugins
 
 ## 🔧 Building from Source
 
@@ -60,6 +92,9 @@ Build steps:
 cd SealLogger
 # Open CoordsLogger.slnx in Visual Studio and build
 ```
+
+### SealMapper
+No build required - simply copy the plugin files to your Godot project's `addons/` directory.
 
 ## 📝 Coordinate Export Format
 
