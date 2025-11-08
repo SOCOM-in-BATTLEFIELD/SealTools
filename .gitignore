@@ -1,0 +1,14 @@
+# exclude binaries and debug output
+.vs/
+bin/
+debug/
+x64/
+
+# exclude binaries
+*.exe
+*.dll
+
+# exclude personal settings
+*.vcxproj.filters
+*.vcxproj.user
+*.code-workspace
