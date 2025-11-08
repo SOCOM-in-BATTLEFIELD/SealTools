@@ -8,7 +8,7 @@ A comprehensive toolkit for SOCOM map reconstruction and analysis. This project 
 A real-time coordinate logger for SOCOM (SOCOM II & SOCOM: Combined Assault) running on PCSX2. SealLogger attaches to the PCSX2 emulator process and captures player position data for map reconstruction.
 <p align="center">
   <a href="https://github.com/SOCOM-in-BATTLEFIELD/SealTools">
-    <img src="assets/SealLogger_v1.png" alt="SealTools Logo" width="400">
+    <img src="assets/SealLogger_v1.png" alt="SealTools Logo">
   </a>
 </p>
 
@@ -30,6 +30,11 @@ A real-time coordinate logger for SOCOM (SOCOM II & SOCOM: Combined Assault) run
 
 ### SealMapper *(Coming Soon)*
 A Godot plugin that imports coordinate data exported from SealLogger, enabling visual map reconstruction and analysis within the Godot engine.
+<p align="center">
+  <a href="https://github.com/SOCOM-in-BATTLEFIELD/SealTools">
+    <img src="assets/SealMapper_v1.png" alt="SealTools Logo">
+  </a>
+</p>
 
 ## 🚀 Getting Started
 
