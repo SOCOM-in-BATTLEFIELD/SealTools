@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8x0av05gemuf"]
+
+[ext_resource type="Script" uid="uid://dsvmb8sj4bcco" path="res://addons/SealMapper/SealMapper_button.gd" id="1_nh5o8"]
+
+[node name="SealMapper" type="Button"]
+offset_right = 8.0
+offset_bottom = 8.0
+text = "IMPORT"
+script = ExtResource("1_nh5o8")
+metadata/_custom_type_script = "uid://cfh2xqbhnwrse"
