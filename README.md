@@ -6,6 +6,11 @@ A comprehensive toolkit for SOCOM map reconstruction and analysis. This project 
 
 ### SealLogger
 A real-time coordinate logger for SOCOM (SOCOM II & SOCOM: Combined Assault) running on PCSX2. SealLogger attaches to the PCSX2 emulator process and captures player position data for map reconstruction.
+<p align="center">
+  <a href="https://github.com/SOCOM-in-BATTLEFIELD/SealTools">
+    <img src="assets/SealLogger_v1.png" alt="SealTools Logo" width="400">
+  </a>
+</p>
 
 **Features:**
 - Real-time coordinate capture from PCSX2
