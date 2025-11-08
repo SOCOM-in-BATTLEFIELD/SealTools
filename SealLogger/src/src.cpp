@@ -191,7 +191,7 @@ void SocomHelper()
 
                     const auto origin = origins[i] / scalar; // apply scaling factor to origin
 
-                    printf("%.2f,%.2f,%.2f\n", count, origin.x, origin.y, origin.z);
+                    printf("%.2f,%.2f,%.2f\n", origin.x, origin.y, origin.z);
                 }
             }
             else
