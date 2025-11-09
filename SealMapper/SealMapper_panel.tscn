@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://cqhp3m65l2dtb"]
+
+[ext_resource type="Script" uid="uid://b5x7b5qewv7kv" path="res://addons/SealMapper/SealMapper_panel.gd" id="1_gnmo4"]
+
+[node name="SealMapper" type="VBoxContainer"]
+script = ExtResource("1_gnmo4")
+
+[node name="btn_import" type="Button" parent="."]
+layout_mode = 2
+text = "IMPORT COORDINATES"
+
+[node name="btn_createIcons" type="Button" parent="."]
+layout_mode = 2
+text = "CREATE ICONS"
+
+[connection signal="pressed" from="btn_import" to="." method="_on_btn_import_pressed"]
+[connection signal="pressed" from="btn_createIcons" to="." method="_on_btn_create_icons_pressed"]
