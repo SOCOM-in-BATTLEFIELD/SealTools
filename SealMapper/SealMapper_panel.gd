@@ -1,9 +1,17 @@
 @tool
 extends VBoxContainer
 
-# define static objects
+# define object for map tracing
 const HIGHWAY_SIGN_POLE_01 = preload("res://objects/Global/Generic/Common/Props/HighwaySignPole_01.tscn") # MAP IMPORT OUTLINE 
 const WORLD_ICON = preload("res://objects/Gameplay/Common/WorldIcon.tscn") # NAME TAGS
+const SHELL_CASINGS_01 = preload("res://objects/Global/Props/ShellCasings_01.tscn") # SPECTATOR
+const SHELL_CASINGS_02 = preload("res://objects/Global/Props/ShellCasings_02.tscn") # 
+const SHELL_CASINGS_03 = preload("res://objects/Global/Props/ShellCasings_03.tscn") # 
+const SHELL_CASINGS_04 = preload("res://objects/Global/Props/ShellCasings_04.tscn") # 
+
+const SPECTATOR_ID = 50
+const NAMETAG_ID = 700
+
 
 func _on_btn_import_pressed() -> void:
 	importCoordinates("res://addons/SealMapper/coordinates.csv")
@@ -11,6 +19,9 @@ func _on_btn_import_pressed() -> void:
 
 func _on_btn_create_icons_pressed() -> void:
 	createTeamNameIcons()
+
+func _on_btn_create_spectators_pressed() -> void:
+	createSpectatorSpawns()
 
 
 func importCoordinates(input: String) -> void:
@@ -91,7 +102,7 @@ func createTeamNameIcons() -> void:
 	var base_name = "WorldIcon_NameTag_"
 	print("[+][SealMapperPanel] generating icons for nametags.")
 	for i in range(32):
-		var ID = 700 + i
+		var ID = NAMETAG_ID + i
 		var ICON = WORLD_ICON.instantiate()
 		node.add_child(ICON)
 		ICON.ObjId = ID
@@ -105,6 +116,28 @@ func createTeamNameIcons() -> void:
 	print("[+][SealMapperPanel] completed nametag icon generation.")
 	MessageBox("created world icons for name tags.")
 
+# auto generate spectator spawns for each team
+func createSpectatorSpawns() -> void:
+	var origin = Vector3(10,10,10)
+	var node = EditorInterface.get_edited_scene_root()
+	if (node.has_node("Spectator_Object_1")):
+		MessageBox("")
+		return
+	
+	var base_name = "Spectator_Object_"
+	print("[+][SealMapper] generating spectator objects for spawn locations.")
+	for i in range(2):
+		var ID = SPECTATOR_ID + i
+		var OBJ = SHELL_CASINGS_01.instantiate()
+		node.add_child(OBJ)
+		OBJ.ObjId = ID
+		OBJ.name = base_name + str(i)
+		OBJ.position = origin
+		OBJ.owner = node
+		OBJ.scene_file_path = ""
+		print("[+][SealMapper] created spectator object with id: %d" % ID)
+	print("[+][SealMapper] completed spectator spawn generation.")
+	MessageBox("created items for spectator spawns. You still need to reposition the items.")
 
 # display a message box to the user
 func MessageBox(msg: String) -> void:

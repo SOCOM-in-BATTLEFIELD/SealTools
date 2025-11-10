@@ -13,5 +13,10 @@ text = "IMPORT COORDINATES"
 layout_mode = 2
 text = "AUTO-GENERATE NAME TAGS"
 
+[node name="btn_createSpectators" type="Button" parent="."]
+layout_mode = 2
+text = "AUTO-GENERATE SPECTATOR OBJECTS"
+
 [connection signal="pressed" from="btn_import" to="." method="_on_btn_import_pressed"]
 [connection signal="pressed" from="btn_createIcons" to="." method="_on_btn_create_icons_pressed"]
+[connection signal="pressed" from="btn_createSpectators" to="." method="_on_btn_create_spectators_pressed"]
