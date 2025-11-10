@@ -1,6 +1,10 @@
 @tool
 extends VBoxContainer
 
+# define static objects
+const HIGHWAY_SIGN_POLE_01 = preload("res://objects/Global/Generic/Common/Props/HighwaySignPole_01.tscn") # MAP IMPORT OUTLINE 
+const WORLD_ICON = preload("res://objects/Gameplay/Common/WorldIcon.tscn") # NAME TAGS
+
 func _on_btn_import_pressed() -> void:
 	importCoordinates("res://addons/SealMapper/coordinates.csv")
 
@@ -49,24 +53,24 @@ func importCoordinates(input: String) -> void:
 
 
 func spawnPlaceholderObject(node: Node, name_: String, pos: Vector3) -> void:
-	# Create a MeshInstance3D node with a visible mesh
-	var instance = MeshInstance3D.new()
+	## Create a MeshInstance3D node with a visible mesh
+	## var instance = MeshInstance3D.new()
 	
-	# Create a simple box mesh as a marker
-	var box_mesh = BoxMesh.new()
+	## Create a simple box mesh as a marker
+	## var box_mesh = BoxMesh.new()
 	### var box_mesh = CylinderMesh.new()
-	box_mesh.size = Vector3(2.0, 2.0, 2.0)  # 2x2x2 unit box
-	instance.mesh = box_mesh
+	## box_mesh.size = Vector3(2.0, 2.0, 2.0)  # 2x2x2 unit box
+	## instance.mesh = box_mesh
 	
 	# Create a basic material to make it more visible
-	var material = StandardMaterial3D.new()
-	material.albedo_color = Color.RED
-	material.emission_enabled = true
-	material.emission = Color.RED * 0.3  # Add slight glow
-	instance.material_override = material
-	
-	# 
-	## var instance = HighwaySignPole_01.new(); # @TODO: need to figure out how to include the mesh for the item
+	## var material = StandardMaterial3D.new()
+	## material.albedo_color = Color.RED
+	## material.emission_enabled = true
+	#material.emission = Color.RED * 0.3  # Add slight glow
+	## instance.material_override = material
+ 	
+	## 
+	var instance = HIGHWAY_SIGN_POLE_01.instantiate()
 	
 	# Add to scene
 	node.add_child(instance)
@@ -74,30 +78,36 @@ func spawnPlaceholderObject(node: Node, name_: String, pos: Vector3) -> void:
 	instance.position = pos
 	instance.owner = node
 	print("[+][SealMapperPanel] spawned object at location: x: %.2f , y: %.2f , z: %.2f" % [pos.x, pos.y, pos.z])
+ 
 
-
+# auto genetate name tag icons with team id
 func createTeamNameIcons() -> void:
 	var origin = Vector3(0,0,0)
 	var node = EditorInterface.get_edited_scene_root()
-	if (node.has_node("TeamIcon_")):
+	if (node.has_node("TeamIcon_1")): # try to prevent duplicate auto generate
 		MessageBox("ignoring icon generation due to TeamIcon already present.")
 		return
 	
-	var base_name = "TeamIcon_"
+	var base_name = "WorldIcon_NameTag_"
 	print("[+][SealMapperPanel] generating icons for nametags.")
 	for i in range(32):
 		var ID = 700 + i
-		var ICON = WorldIcon.new()
+		var ICON = WORLD_ICON.instantiate()
 		node.add_child(ICON)
 		ICON.ObjId = ID
-		ICON.name = base_name + str(i)
+		ICON.name = base_name + str(i + 1)
+		ICON.iconTextVisible = true
+		ICON.iconImageVisible = true
 		ICON.position = origin
 		ICON.owner = node
-		print("[+][SealMapperPanel] created icon with id: %d", % ID)
+		ICON.scene_file_path = ""
+		print("[+][SealMapperPanel] created icon with id: %d" % ID)
+	print("[+][SealMapperPanel] completed nametag icon generation.")
 	MessageBox("created world icons for name tags.")
+
 
 # display a message box to the user
 func MessageBox(msg: String) -> void:
 	var dialog = AcceptDialog.new()
-	dialog.text = msg
+	dialog.dialog_text = msg
 	EditorInterface.popup_dialog_centered(dialog)
