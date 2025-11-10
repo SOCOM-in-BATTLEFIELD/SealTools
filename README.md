@@ -1,5 +1,8 @@
 # SealTools
 
+[![YouTube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/channel/UCEZdYkN1i18H8hz1PT6Mx9A)
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/JCCMpXhYWc)
+
 A comprehensive toolkit for SOCOM map reconstruction and analysis. This project provides tools to capture in-game coordinates from PCSX2 and visualize them for map creation and analysis.
 
 ## 🛠️ Tools
