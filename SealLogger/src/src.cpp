@@ -13,7 +13,7 @@ int main()
     ::RegisterClassExW(&wc);
     g_WindowWidth = (int)(1280 * main_scale);
     g_WindowHeight = (int)(800 * main_scale);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"SOCOM in BATTLEFIELD", WS_OVERLAPPEDWINDOW, 100, 100, (int)(350 * main_scale), (int)(160 * main_scale), nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"[SiB] SealLogger", WS_OVERLAPPEDWINDOW, 100, 100, (int)(350 * main_scale), (int)(160 * main_scale), nullptr, nullptr, wc.hInstance, nullptr);
     if (!CreateDeviceD3D(hwnd))
     {
         CleanupDeviceD3D();
