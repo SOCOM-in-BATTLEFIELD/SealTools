@@ -18,6 +18,7 @@
 #pragma comment(lib, "d3d11.lib")
 
 #define CRC_PATTERN "8B 35 ? ? ? ? 48 8D 0D ? ? ? ? E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 81 3D ? ? ? ? ? ? ? ? 0F 84 ? ? ? ? 8B 3D"
+#define CSV_Path "coordinates.csv"
 
 // Render Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
@@ -110,6 +111,22 @@ static constexpr unsigned __int32 pLocalSeal[] =
 	0x44D648,		// S2
 	0x0,			// S3 (not supported)
 	0x709D98		// CA
+};
+
+static constexpr unsigned __int32 iMatchTimer[] =
+{
+	0x0, 			// S1 (not supported)
+	0xC2E614,		// S2
+	0x0,			// S3 (not supported)
+	0x0				// CA (not supported)
+};
+
+static constexpr unsigned __int32 iMatchTimerV[] =
+{
+	0x0,
+	0x0,
+	0x04C80F60,	// 1337 * 60 + 0 = 80220 : 80220 * 1000 = 80220000  :: value = ((hours * 60) + minutes) * 1000 + (seconds / 60 * 1000)
+	0x0
 };
 
 /* instruction which can be manipulated to force start the match */
