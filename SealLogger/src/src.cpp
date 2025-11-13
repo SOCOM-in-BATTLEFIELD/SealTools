@@ -102,12 +102,12 @@ void EndFrame()
 void SocomHelper()
 {
     static pcsx2Memory mem = pcsx2Memory();	//	attach to pcsx2 "pcsx2-qt.exe
+    static i64_t gCRCBase{ 0 };
+    static int iSelectedGame{ -1 };
     static std::vector<VEC3_T> origins;
-    static bool bSupportCA{ false };
-    ImGui::Checkbox("SOCOM CA", &bSupportCA);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("enable this if using SOCOM CA");
+    static bool bRestoredForceStartPatch{ false };
 
+    /* get process info */
     auto pInfo = mem.psxGetInfo();		//	gets pcsx2 process information
     if (!pInfo.bAttached)				//	check if attached
     {
@@ -116,57 +116,115 @@ void SocomHelper()
         return;
     }
 
-    /* Get Local Player */
-    const auto pSEAL = mem.psxRead<unsigned __int32>(bSupportCA ? pLocalSeal.second : pLocalSeal.first);
-    if (pSEAL == 0)
+    /* find CRC base 
+	FindPatternEx will search for the signature in the pcsx2 process and return the address of the CRC static variable
+	This probably won't change as this static variable is used quite often in the pcsx2 codebase.
+	We use the ASM_CMP instruction only because the FindPatternEx function uses it to calculate the offset to the variable.
+	the ASM_MOV is expecting to move RAX / RCX which is not the case here and would return an incorrect offset. (+1)
+    CMP works only because it offsets 6 bytes which is the size of our instruction.
+     
+     CRC_PATTERN: "8B 35 ? ? ? ? 48 8D 0D ? ? ? ? E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 81 3D ? ? ? ? ? ? ? ? 0F 84 ? ? ? ? 8B 3D"
+        
+		Assembly reference:
+		.text:0000000140001A7E 8B 35 30 99 08 03        mov     esi, cs:m_CRC_3             <-- CRC static variable
+        .text:0000000140001A84 48 8D 0D D5 98 08 03     lea     rcx, dword_14308B360 ; _Mtx_t
+        .text:0000000140001A8B E8 10 EE B2 00           call    _Mtx_lock
+    */
+
+	/* find crc base if not found yet , should only be done once */
+    if (!gCRCBase && !exMemory::FindPatternEx(pInfo.hProc, pInfo.dwModuleBase, CRC_PATTERN, &gCRCBase, 0, EASM::ASM_CMP))
     {
-        /* VARIABLES FOR DIFFERENT GAMES */
-        auto addr = bSupportCA ? iForceStart.second : iForceStart.first;
-        auto cmp = bSupportCA ? iForceStart_original.second : iForceStart_original.first;
-        auto new_value = bSupportCA ? iForceStart_patch.second : iForceStart_patch.first;
+		ImGui::TextColored(ImVec4(1, 0, 0, 1), "FAILED TO FIND CRC BASE");
+		mem = pcsx2Memory(); // attempt to reattach to pcsx2 process
+        return;
+    }
+
+    /* get game */
+	ImGui::Combo("SELECT GAME", &iSelectedGame, "SOCOM 1\0SOCOM 2\0SOCOM 3\0SOCOM CA\0");
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("select the current game running on pcsx2.");
+
+    /* compare CRC with selected game */
+	auto crc_base = mem.Read<unsigned __int32>(gCRCBase); // read crc value from memory
+	if (!crc_base || crc_base != gCRC[iSelectedGame])
+    {
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "GAME CRC MISMATCH");
+		ImGui::Text("EXPECTED: 0x%08X", gCRC[iSelectedGame]);
+		ImGui::Text("FOUND:    0x%08X", crc_base);
+        return;
+    }
+
+    /* handle unsupported games */
+    switch (iSelectedGame)
+    {
+    case(E_SEAL_S1):
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "SOCOM 1 NOT SUPPORTED");
+        return;
+    case(E_SEAL_S2): break;
+    case(E_SEAL_S3):
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "SOCOM 3 NOT SUPPORTED");
+        return;
+    case(E_SEAL_CA): break;
+    default:
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "SELECT A GAME");
+        return;
+    }
+
+    /* VARIABLES FOR DIFFERENT GAMES */
+    auto addr = iForceStart[iSelectedGame];
+    auto cmp = iForceStart_original[iSelectedGame];
+    auto new_value = iForceStart_patch[iSelectedGame];
+
+    /* Get Local Player */
+    const auto pSEAL = mem.psxRead<unsigned __int32>(pLocalSeal[iSelectedGame]);
+    if (pSEAL == 0) /* handle lobby state */
+    {
 
         /* FORCE START */
         bool bPlayerInLobby{ false };
-        static bool bReadyPatch{ false };
-        static int ReadyTick = 0;
 
-        /* this sucks . . . everything was so clean */
-        if (bSupportCA && mem.psxRead<unsigned __int8>(addr) == cmp)
-            bPlayerInLobby = true;
-        else if (!bSupportCA && mem.psxRead<unsigned __int32>(addr) == cmp)
-            bPlayerInLobby = true;
+        switch (iSelectedGame)
+        {
+        case(E_SEAL_S2):
+            bPlayerInLobby = mem.psxRead<unsigned __int32>(addr) == cmp;
+			break;
+		case(E_SEAL_CA):
+            bPlayerInLobby = mem.psxRead<unsigned __int8>(addr) == cmp;
+            break;
+        }
 
+        /* */
         if (bPlayerInLobby) // user is in a lobby and waiting for players to ready up
         {
             ImGui::TextColored(ImVec4(1, 1, 0, 1), "PLAYER IN LOBBY");
             if (ImGui::Button("ENABLE FORCE START ( LAN )"))
             {
+                bRestoredForceStartPatch = false;
                 mem.psxWrite(addr, new_value); // force starts the match
                 printf("[+] patched bytes to force start the match.\n");
-                if (!bSupportCA)
-                {
-                    bReadyPatch = true; // set flag to patch ready function to its original state 
-                    ReadyTick = GetTickCount64();
-                }
             }
         }
         else
             ImGui::TextColored(ImVec4(1, 1, 0, 1), "WAITING FOR LOBBYSTATE OR LOCAL PLAYER");
-
-        /* restore bytes for socom 2 force start */
-        if (bReadyPatch && !bSupportCA && ((GetTickCount64() - ReadyTick) > 5 * 1000))
-        {
-            bReadyPatch = false;
-            mem.psxWrite<unsigned __int32>(addr, cmp); // restore patches bytes so we can force start sometime later
-            ReadyTick = GetTickCount64();
-            printf("restored patched bytes.\n");
-        }
         
+        /* early return */
         return;
     }
 
     /* GET SEAL OBJECT */
     const auto& SEAL = mem.psxRead<CZSEAL_T>(pSEAL);
+
+    /* restore force start byte patch */
+	// this is done only after the seal is valid (in-game) & force start patch is applied
+    if (iSelectedGame == E_SEAL_S2)
+    {
+        if (!bRestoredForceStartPatch && mem.psxRead<unsigned __int32>(addr) == new_value) // check if force start patch is applied
+        {
+            mem.psxWrite<unsigned __int32>(addr, cmp); // restore patches bytes so we can force start sometime later
+            printf("restored patched bytes.\n");
+            bRestoredForceStartPatch = true;
+        }
+    }
 
     /* RENDER */
     static float scalar = 12.f;
