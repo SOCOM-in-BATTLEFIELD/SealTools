@@ -157,9 +157,7 @@ void SocomHelper()
     /* handle unsupported games */
     switch (iSelectedGame)
     {
-    case(E_SEAL_S1):
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), "SOCOM 1 NOT SUPPORTED");
-        return;
+    case(E_SEAL_S1): break;
     case(E_SEAL_S2): break;
     case(E_SEAL_S3):
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "SOCOM 3 NOT SUPPORTED");
@@ -185,6 +183,9 @@ void SocomHelper()
 
         switch (iSelectedGame)
         {
+        case(E_SEAL_S1):
+            bPlayerInLobby = mem.psxRead<unsigned __int32>(addr) == cmp;
+			break;
         case(E_SEAL_S2):
             bPlayerInLobby = mem.psxRead<unsigned __int32>(addr) == cmp;
 			break;
@@ -211,12 +212,9 @@ void SocomHelper()
         return;
     }
 
-    /* GET SEAL OBJECT */
-    const auto& SEAL = mem.psxRead<CZSEAL_T>(pSEAL);
-
     /* restore force start byte patch */
-	// this is done only after the seal is valid (in-game) & force start patch is applied
-    if (iSelectedGame == E_SEAL_S2)
+    // this is done only after the seal is valid (in-game) & force start patch is applied
+    if (iSelectedGame == E_SEAL_S1 || iSelectedGame == E_SEAL_S2)
     {
         if (!bRestoredForceStartPatch && mem.psxRead<unsigned __int32>(addr) == new_value) // check if force start patch is applied
         {
@@ -225,6 +223,9 @@ void SocomHelper()
             bRestoredForceStartPatch = true;
         }
     }
+
+    /* GET SEAL OBJECT */
+    const auto& SEAL = mem.psxRead<CZSEAL_T>(pSEAL);
 
     /* RENDER */
     static float scalar = 12.f;
