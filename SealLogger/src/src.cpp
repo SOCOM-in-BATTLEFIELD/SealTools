@@ -1,5 +1,8 @@
 #include "def.h"
 #include <exMemory/extensions/pcsx2/pcsx2Memory.hpp>
+#include <fstream>
+#include <iomanip>
+#include <string>
 
 // Main code
 int main()
@@ -99,6 +102,23 @@ void EndFrame()
     g_SwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
 }
 
+// CSV writer helper
+static bool SaveOriginsToCsv(const std::vector<VEC3_T>& origins, float scalar, const std::string& path)
+{
+    std::ofstream ofs(path, std::ios::out | std::ios::trunc);
+    if (!ofs)
+        return false;
+
+    ofs << "x,y,z\n";
+    ofs << std::fixed << std::setprecision(2);
+    for (const auto& o : origins)
+    {
+        const auto origin = o / scalar;
+        ofs << origin.x << ',' << origin.y << ',' << origin.z << '\n';
+    }
+    return true;
+}
+
 void SocomHelper()
 {
     static pcsx2Memory mem = pcsx2Memory();	//	attach to pcsx2 "pcsx2-qt.exe
@@ -112,45 +132,45 @@ void SocomHelper()
     if (!pInfo.bAttached)				//	check if attached
     {
         ImGui::TextColored(ImVec4(1, 1, 0, 1), "PCSX2 PROCESS NOT FOUND");
-		mem = pcsx2Memory(); // attempt to reattach to pcsx2 process
+        mem = pcsx2Memory(); // attempt to reattach to pcsx2 process
         return;
     }
 
-    /* find CRC base 
-	FindPatternEx will search for the signature in the pcsx2 process and return the address of the CRC static variable
-	This probably won't change as this static variable is used quite often in the pcsx2 codebase.
-	We use the ASM_CMP instruction only because the FindPatternEx function uses it to calculate the offset to the variable.
-	the ASM_MOV is expecting to move RAX / RCX which is not the case here and would return an incorrect offset. (+1)
+    /* find CRC base
+    FindPatternEx will search for the signature in the pcsx2 process and return the address of the CRC static variable
+    This probably won't change as this static variable is used quite often in the pcsx2 codebase.
+    We use the ASM_CMP instruction only because the FindPatternEx function uses it to calculate the offset to the variable.
+    the ASM_MOV is expecting to move RAX / RCX which is not the case here and would return an incorrect offset. (+1)
     CMP works only because it offsets 6 bytes which is the size of our instruction.
-     
+
      CRC_PATTERN: "8B 35 ? ? ? ? 48 8D 0D ? ? ? ? E8 ? ? ? ? 85 C0 0F 85 ? ? ? ? 81 3D ? ? ? ? ? ? ? ? 0F 84 ? ? ? ? 8B 3D"
-        
-		Assembly reference:
-		.text:0000000140001A7E 8B 35 30 99 08 03        mov     esi, cs:m_CRC_3             <-- CRC static variable
+
+        Assembly reference:
+        .text:0000000140001A7E 8B 35 30 99 08 03        mov     esi, cs:m_CRC_3             <-- CRC static variable
         .text:0000000140001A84 48 8D 0D D5 98 08 03     lea     rcx, dword_14308B360 ; _Mtx_t
         .text:0000000140001A8B E8 10 EE B2 00           call    _Mtx_lock
     */
 
-	/* find crc base if not found yet , should only be done once */
+    /* find crc base if not found yet , should only be done once */
     if (!gCRCBase && !exMemory::FindPatternEx(pInfo.hProc, pInfo.dwModuleBase, CRC_PATTERN, &gCRCBase, 0, EASM::ASM_CMP))
     {
-		ImGui::TextColored(ImVec4(1, 0, 0, 1), "FAILED TO FIND CRC BASE");
-		mem = pcsx2Memory(); // attempt to reattach to pcsx2 process
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "FAILED TO FIND CRC BASE");
+        mem = pcsx2Memory(); // attempt to reattach to pcsx2 process
         return;
     }
 
     /* get game */
-	ImGui::Combo("SELECT GAME", &iSelectedGame, "SOCOM 1\0SOCOM 2\0SOCOM 3\0SOCOM CA\0");
+    ImGui::Combo("SELECT GAME", &iSelectedGame, "SOCOM 1\0SOCOM 2\0SOCOM 3\0SOCOM CA\0");
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("select the current game running on pcsx2.");
 
     /* compare CRC with selected game */
-	auto crc_base = mem.Read<unsigned __int32>(gCRCBase); // read crc value from memory
-	if (!crc_base || crc_base != gCRC[iSelectedGame])
+    auto crc_base = mem.Read<unsigned __int32>(gCRCBase); // read crc value from memory
+    if (!crc_base || crc_base != gCRC[iSelectedGame])
     {
         ImGui::TextColored(ImVec4(1, 1, 0, 1), "GAME CRC MISMATCH");
-		ImGui::Text("EXPECTED: 0x%08X", gCRC[iSelectedGame]);
-		ImGui::Text("FOUND:    0x%08X", crc_base);
+        ImGui::Text("EXPECTED: 0x%08X", gCRC[iSelectedGame]);
+        ImGui::Text("FOUND:    0x%08X", crc_base);
         return;
     }
 
@@ -185,11 +205,11 @@ void SocomHelper()
         {
         case(E_SEAL_S1):
             bPlayerInLobby = mem.psxRead<unsigned __int32>(addr) == cmp;
-			break;
+            break;
         case(E_SEAL_S2):
             bPlayerInLobby = mem.psxRead<unsigned __int32>(addr) == cmp;
-			break;
-		case(E_SEAL_CA):
+            break;
+        case(E_SEAL_CA):
             bPlayerInLobby = mem.psxRead<unsigned __int8>(addr) == cmp;
             break;
         }
@@ -207,7 +227,7 @@ void SocomHelper()
         }
         else
             ImGui::TextColored(ImVec4(1, 1, 0, 1), "WAITING FOR LOBBYSTATE OR LOCAL PLAYER");
-        
+
         /* early return */
         return;
     }
@@ -219,8 +239,13 @@ void SocomHelper()
         if (!bRestoredForceStartPatch && mem.psxRead<unsigned __int32>(addr) == new_value) // check if force start patch is applied
         {
             mem.psxWrite<unsigned __int32>(addr, cmp); // restore patches bytes so we can force start sometime later
-            printf("restored patched bytes.\n");
+            printf("[+] restored patched bytes.\n");
             bRestoredForceStartPatch = true;
+            if (iSelectedGame)
+            {
+                mem.psxWrite<unsigned __int8>(iMatchTimer[iSelectedGame], iMatchTimerV[iSelectedGame]); // set match time to a few hours long lol 
+				printf("[+] set long match time.\n");
+            }
         }
     }
 
@@ -252,6 +277,12 @@ void SocomHelper()
 
                     printf("%.2f,%.2f,%.2f\n", origin.x, origin.y, origin.z);
                 }
+
+                // write to CSV in executable folder
+                if (SaveOriginsToCsv(origins, scalar, CSV_Path))
+                    printf("[+] exported saved positions.\n");
+                else
+                    printf("[!] failed to export positions.\n");
             }
             else
                 printf("[!] failed to dump list of saved positions as the container is empty.\n");
