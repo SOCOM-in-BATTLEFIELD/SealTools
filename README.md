@@ -17,19 +17,18 @@ A real-time coordinate logger for SOCOM (SOCOM II & SOCOM: Combined Assault) run
 
 **Features:**
 - Real-time coordinate capture from PCSX2
-- Support for both SOCOM II and SOCOM: Combined Assault
+- Support for both SOCOM I, II, 3 & CA
 - Force start functionality for LAN matches
 - Adjustable coordinate scaling
 - Export coordinates to CSV format
 - ImGui-based user interface
 
 **Usage:**
-1. Launch PCSX2 and load SOCOM II or SOCOM: Combined Assault
+1. Launch PCSX2 and load any of the supported SOCOM titles.
 2. Run `SealLogger.exe`
-3. Enable "SOCOM CA" checkbox if using Combined Assault
-4. Join or create a match
+4. Start a single player mission or host a LAN match ( not supported in SOCOM I )
 5. Use "ADD POSITION TO LIST" to capture coordinates
-6. Use "LIST SAVED POSITIONS" to export captured data
+6. Use "LIST SAVED POSITIONS" to export captured data to both the console and create `coordinates.CSV`
 
 ### SealMapper
 A Godot plugin that imports coordinate data exported from SealLogger, enabling visual map reconstruction and analysis within the Godot engine.
