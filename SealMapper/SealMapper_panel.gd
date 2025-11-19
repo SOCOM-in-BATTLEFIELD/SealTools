@@ -128,6 +128,7 @@ func createDemolitionPackage() -> void:
 		demo_node = rootNode.get_node(demo_node_name)
 	else:
 		demo_node = __createNode(demo_node_name, rootNode)
+	demo_node.position = Vector3(0, -50, 0)
 		
 	# create bomb pickup object
 	var item_name = "Demolition_Bomb"
@@ -162,6 +163,8 @@ func createExtractionPackage() -> void:
 		extract_node = rootNode.get_node(extract_node_name)
 	else:
 		extract_node = __createNode(extract_node_name, rootNode)
+	extract_node.position = Vector3(0, -100, 0)
+	
 	# create HQ object
 	var hq_node
 	var item_name = "HOSTAGE_HQ"
@@ -221,24 +224,31 @@ func __generateHQSpawnPoints(node: Node):
 		if (node.has_node(base_name) == false):
 			print("[!][SealMapper] unable to find HQ node %s , skipping." % base_name)
 			continue
-		# create players spawn points until 16 
+		# get the team hq node
 		var team_hq_node = node.get_node(base_name)
-		# name: SpawnPoint_hqID_spawnIndex 
-		for j in range(16):
-			var node_name = "SpawnPoint_" + str(ID) + "_" + str(j + 1)
-			if (team_hq_node.has_node(node_name)):
-				print("[~][SealMapper] skipping %s" % node_name)
-				continue
-			# create spawn point
-			__instantiateObj(SPAWN_POINT, node_name, origin, team_hq_node, -1)
-			print("[+][SealMapper] created spawn point with name %s for team %d" %[node_name, ID])
-		
 		# add the AI Spawner
 		var spawner_name = "AI_Spawner_" + str(ID)
 		if (team_hq_node.has_node(spawner_name)):
 			print("[~][SealMapper] skipping %s" % spawner_name)
 			continue
 		__instantiateObj(AI_SPAWNER, spawner_name, origin, team_hq_node, SPAWNER_ID + i)
+		var spawner_node = team_hq_node.get_node(spawner_name)
+		# create players spawn points until 16 
+		# name: SpawnPoint_hqID_spawnIndex 
+		for j in range(16):
+			var node_name = "SpawnPoint_" + str(ID) + "_" + str(j + 1)
+			if (team_hq_node.has_node(node_name)):
+				if (spawner_node.AlternateSpawns.size() <= j):
+					spawner_node.AlternateSpawns.push_back(team_hq_node.get_node(node_name))
+				print("[~][SealMapper] skipping %s" % node_name)
+				continue
+			# create spawn point
+			__instantiateObj(SPAWN_POINT, node_name, origin, team_hq_node, -1)
+			if (team_hq_node.InfantrySpawns.size() <= j):
+				team_hq_node.InfantrySpawns.push_back(team_hq_node.get_node(node_name))
+			if (spawner_node.AlternateSpawns.size() <= j):
+				spawner_node.AlternateSpawns.push_back(team_hq_node.get_node(node_name))
+			print("[+][SealMapper] created spawn point with name %s for team %d" %[node_name, ID])
 		print("[+][SealMapper] created ai spawner with name %s for team %d" %[spawner_name, ID])
 
 # node = SceneRoot
@@ -250,6 +260,7 @@ func __generateIcons(node: Node) -> void:
 		container_node = node.get_node(container_name)
 	else:
 		container_node = __createNode(container_name, node)
+	container_node.position = Vector3(0, -10, 0)
 	
 	for i in range(32):
 		var node_name = "WorldIcon_NameTag_" + str(i + 1)
@@ -263,14 +274,15 @@ func __generateIcons(node: Node) -> void:
 
 # node = SceneRoot
 func __generateSpectatorObjects(node: Node) -> void:
-	var origin = Vector3(10,10,10)
+	var origin = Vector3(0,0,0)
 	var container_node
 	var container_name = "[SealMapper] SPECTATORS"
 	if (node.has_node(container_name)):
 		container_node = node.get_node(container_name)
 	else:
 		container_node = __createNode(container_name, node)
-		
+	container_node.position = Vector3(0, 10, 0)
+	
 	for i in range(2):
 		var node_name = "Spectator_Object_" + str(i)
 		if (node.has_node(node_name)):
