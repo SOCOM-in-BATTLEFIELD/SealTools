@@ -22,7 +22,13 @@ layout_mode = 2
 text = "AUTO-GENERATE SPAWN POINTS
 "
 
+[node name="btn_createDemoPkg" type="Button" parent="."]
+layout_mode = 2
+text = "AUTO-GENERATE DEMOLITION
+"
+
 [connection signal="pressed" from="btn_import" to="." method="_on_btn_import_pressed"]
 [connection signal="pressed" from="btn_createIcons" to="." method="_on_btn_create_icons_pressed"]
 [connection signal="pressed" from="btn_createSpectators" to="." method="_on_btn_create_spectators_pressed"]
 [connection signal="pressed" from="btn_createSpawnPoints" to="." method="_on_btn_create_spawn_points_pressed"]
+[connection signal="pressed" from="btn_createDemoPkg" to="." method="_on_btn_create_demo_pkg_pressed"]

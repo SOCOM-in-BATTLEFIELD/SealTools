@@ -5,15 +5,19 @@ extends VBoxContainer
 const SPAWN_POINT = preload("res://objects/entities/SpawnPoint.tscn")
 const AI_SPAWNER = preload("res://objects/Gameplay/AI/AI_Spawner.tscn")
 
-# define object for map tracing
+# define objects
 const HIGHWAY_SIGN_POLE_01 = preload("res://objects/Global/Generic/Common/Props/HighwaySignPole_01.tscn") # MAP IMPORT OUTLINE 
 const WORLD_ICON = preload("res://objects/Gameplay/Common/WorldIcon.tscn") # NAME TAGS
 const SHELL_CASINGS_01 = preload("res://objects/Global/Props/ShellCasings_01.tscn") # SPECTATOR
 const SHELL_CASINGS_02 = preload("res://objects/Global/Props/ShellCasings_02.tscn") # 
 const SHELL_CASINGS_03 = preload("res://objects/Global/Props/ShellCasings_03.tscn") # 
 const SHELL_CASINGS_04 = preload("res://objects/Global/Props/ShellCasings_04.tscn") # 
+const BACKPACK_01 = preload("res://objects/Shared/Generic/Common/Props/Backpack_01.tscn") # Bomb
+const CRATE_AMMO_01_STACK_A = preload("res://objects/Global/Generic/Military/Props/CrateAmmo_01_StackA.tscn") # demolition site objects
+const WEAPON_CASE_PISTOL_01 = preload("res://objects/Global/Generic/Military/Props/WeaponCase_Pistol_01.tscn") # Bomb
 
 # define object ids
+const BOMB_ID = 20
 const SPECTATOR_ID = 50
 const SPAWNER_ID = 100
 const NAMETAG_ID = 700
@@ -31,6 +35,8 @@ func _on_btn_create_spectators_pressed() -> void:
 func _on_btn_create_spawn_points_pressed() -> void:
 	createHQPlayerSpawns()
 
+func _on_btn_create_demo_pkg_pressed() -> void:
+	createDemolitionPackage()
 
 # reads CSV file and spawns objects at the locations obtained from the CSV file
 func importCoordinates(input: String) -> void:
@@ -103,6 +109,37 @@ func createSpectatorSpawns() -> void:
 	
 	print("[+][SealMapper] completed spectator spawn generation.")
 	MessageBox("created objects for spectator spawns. You will need to reposition them.")
+
+# auto generates all the items required for the demolition game mode
+func createDemolitionPackage() -> void:
+	var origin = Vector3(0,0,0)
+	var rootNode = EditorInterface.get_edited_scene_root()
+	# create organizing node
+	var demo_node
+	var demo_node_name = "[SealMapper] DEMOLITION"
+	if (rootNode.has_node(demo_node_name)):
+		demo_node = rootNode.get_node(demo_node_name)
+	else:
+		demo_node = __createNode(demo_node_name, rootNode)
+		
+	# create bomb pickup object
+	var item_name = "Demolition_Bomb"
+	if (demo_node.has_node(item_name)):
+		print("[~][SealMapper] skipping object with name %s" % item_name)
+	else:
+		__instantiateObj(WEAPON_CASE_PISTOL_01, item_name, origin, demo_node, BOMB_ID)
+		print("[+][SealMapper] created bomb object with name %s" % item_name)
+	
+	# create plant site objects for each team
+	for i in range(2):
+		var node_name = "Demolition_Objective_" + str(i + 1)
+		if (demo_node.has_node(node_name)):
+			print("[~][SealMapper] skipping objective %s" % node_name)
+			continue
+		# create objective object
+		var ID = i + BOMB_ID
+		__instantiateObj(CRATE_AMMO_01_STACK_A, node_name, origin, demo_node, ID)
+		print("[+][SealMapper] created objective with name %s & id %d" %[node_name, ID])
 
 # node = SceneRoot
 func __generateHQSpawnPoints(node: Node):
