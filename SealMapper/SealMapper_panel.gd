@@ -4,6 +4,8 @@ extends VBoxContainer
 # define for hq spawns
 const SPAWN_POINT = preload("res://objects/entities/SpawnPoint.tscn")
 const AI_SPAWNER = preload("res://objects/Gameplay/AI/AI_Spawner.tscn")
+const HQ_PLAYER_SPAWNER = preload("res://objects/Gameplay/Common/HQ_PlayerSpawner.tscn")
+const POLYGON_VOLUME = preload("res://addons/bf_portal/portal_tools/types/PolygonVolume/PolygonVolume.tscn")
 
 # define objects
 const HIGHWAY_SIGN_POLE_01 = preload("res://objects/Global/Generic/Common/Props/HighwaySignPole_01.tscn") # MAP IMPORT OUTLINE 
@@ -18,13 +20,13 @@ const WEAPON_CASE_PISTOL_01 = preload("res://objects/Global/Generic/Military/Pro
 
 # define object ids
 const BOMB_ID = 20
+const HOSTAGE_ID = 30
 const SPECTATOR_ID = 50
 const SPAWNER_ID = 100
 const NAMETAG_ID = 700
 
 func _on_btn_import_pressed() -> void:
 	importCoordinates("res://addons/SealMapper/coordinates.csv")
-
 
 func _on_btn_create_icons_pressed() -> void:
 	createTeamNameIcons()
@@ -37,6 +39,9 @@ func _on_btn_create_spawn_points_pressed() -> void:
 
 func _on_btn_create_demo_pkg_pressed() -> void:
 	createDemolitionPackage()
+
+func _on_btn_create_extract_pkg_pressed() -> void:
+	createExtractionPackage()
 
 # reads CSV file and spawns objects at the locations obtained from the CSV file
 func importCoordinates(input: String) -> void:
@@ -111,7 +116,9 @@ func createSpectatorSpawns() -> void:
 	MessageBox("created objects for spectator spawns. You will need to reposition them.")
 
 # auto generates all the items required for the demolition game mode
+# 1 object for bomb, 2 plant site objects , 3 world icons
 func createDemolitionPackage() -> void:
+	#@todo: world icons for Bomb & Plant Sites
 	var origin = Vector3(0,0,0)
 	var rootNode = EditorInterface.get_edited_scene_root()
 	# create organizing node
@@ -140,7 +147,71 @@ func createDemolitionPackage() -> void:
 		var ID = i + BOMB_ID
 		__instantiateObj(CRATE_AMMO_01_STACK_A, node_name, origin, demo_node, ID)
 		print("[+][SealMapper] created objective with name %s & id %d" %[node_name, ID])
+	print("[+][SealMapper] completed demolition mode generation.")
+	MessageBox("")
 
+# auto generates all the items required for the extraction game mode
+# 1HQ w/ polygon volume, 3 spawn points & 1 AI Spawner
+func createExtractionPackage() -> void:
+	var origin = Vector3(0,0,0)
+	var rootNode = EditorInterface.get_edited_scene_root()
+	# create organizing node
+	var extract_node
+	var extract_node_name = "[SealMapper] EXTRACT"
+	if (rootNode.has_node(extract_node_name)):
+		extract_node = rootNode.get_node(extract_node_name)
+	else:
+		extract_node = __createNode(extract_node_name, rootNode)
+	# create HQ object
+	var hq_node
+	var item_name = "HOSTAGE_HQ"
+	if (extract_node.has_node(item_name)):
+		hq_node = extract_node.get_node(item_name)
+		print("[~][SealMapper] skipping object with name %s")
+	else:
+		__instantiateObj(HQ_PLAYER_SPAWNER, item_name, origin, extract_node, HOSTAGE_ID)
+		hq_node = extract_node.get_node(item_name)
+		hq_node.HQEnabled = true
+		hq_node.Team = 0
+		hq_node.AltTeam = 0
+		hq_node.VehicleSpawnersEnabled = false
+		hq_node.ForceRedeploy = false
+		print("[+][SealMapper] created hostage hq with name %s & id %d" %[item_name, HOSTAGE_ID])
+	# create polygon volume
+	var polygon_name = "HOSTAGE"
+	if (hq_node.has_node(polygon_name)):
+		print("[~][SealMapper] skipping object with name %s" % polygon_name)
+	else:
+		var polygon_obj = POLYGON_VOLUME.instantiate()
+		hq_node.add_child(polygon_obj)
+		polygon_obj.name = polygon_name
+		polygon_obj.owner = rootNode  # Must be scene root for visibility in Scene panel
+		polygon_obj.scene_file_path = ""
+		print("[+][SealMapper] created polygon object with name %s for hostage hq" % polygon_name)
+	# create spawner
+	var spawner_name = "Hostage_Spawner"
+	if (hq_node.has_node(spawner_name)):
+		print("[~][SealMapper] skipping spawner object with name %s" % spawner_name)
+	else:
+		var spawner_id = SPAWNER_ID + 3
+		__instantiateObj(AI_SPAWNER, spawner_name, origin, hq_node, spawner_id)
+		print("[+][SealMapper] created spawner object with name %s & id %d for hostage hq" % [spawner_name, spawner_id])
+	# create spawn points
+	var spawner = hq_node.get_node(spawner_name)
+	for i in range(3):
+		var spawn_name = "SpawnPoint_3_" + str(i + 1)
+		if (hq_node.has_node(spawn_name)):
+			print("[~][SealMapper] skipping spawn point object with name %s" % spawn_name)
+			continue
+		__instantiateObj(SPAWN_POINT, spawn_name, origin, hq_node, -1)
+		if (hq_node.InfantrySpawns.size() <= i):
+			hq_node.InfantrySpawns.push_back(hq_node.get_node(spawn_name)) # adds the spawn point to the spawns array
+		if (spawner.AlternateSpawns.size() <= i):
+			spawner.AlternateSpawns.push_back(hq_node.get_node(spawn_name)) # adds the spawn point to the spawner
+		print("[+][SealMapper] created spawn point with name %s for hostage hq" % spawn_name)
+	print("[+][SealMapper] completed extraction mode generation.")
+	MessageBox("")
+	
 # node = SceneRoot
 func __generateHQSpawnPoints(node: Node):
 	var origin = Vector3(0, 0, 0)

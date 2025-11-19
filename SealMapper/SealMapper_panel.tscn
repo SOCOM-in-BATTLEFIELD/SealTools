@@ -27,8 +27,13 @@ layout_mode = 2
 text = "AUTO-GENERATE DEMOLITION
 "
 
+[node name="btn_createExtractPkg" type="Button" parent="."]
+layout_mode = 2
+text = "AUTO-GENERATE EXTRACT"
+
 [connection signal="pressed" from="btn_import" to="." method="_on_btn_import_pressed"]
 [connection signal="pressed" from="btn_createIcons" to="." method="_on_btn_create_icons_pressed"]
 [connection signal="pressed" from="btn_createSpectators" to="." method="_on_btn_create_spectators_pressed"]
 [connection signal="pressed" from="btn_createSpawnPoints" to="." method="_on_btn_create_spawn_points_pressed"]
 [connection signal="pressed" from="btn_createDemoPkg" to="." method="_on_btn_create_demo_pkg_pressed"]
+[connection signal="pressed" from="btn_createExtractPkg" to="." method="_on_btn_create_extract_pkg_pressed"]
