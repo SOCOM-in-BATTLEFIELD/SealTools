@@ -3,6 +3,7 @@ extends VBoxContainer
 
 # define for hq spawns
 const SPAWN_POINT = preload("res://objects/entities/SpawnPoint.tscn")
+const AI_SPAWNER = preload("res://objects/Gameplay/AI/AI_Spawner.tscn")
 
 # define object for map tracing
 const HIGHWAY_SIGN_POLE_01 = preload("res://objects/Global/Generic/Common/Props/HighwaySignPole_01.tscn") # MAP IMPORT OUTLINE 
@@ -14,8 +15,8 @@ const SHELL_CASINGS_04 = preload("res://objects/Global/Props/ShellCasings_04.tsc
 
 # define object ids
 const SPECTATOR_ID = 50
+const SPAWNER_ID = 100
 const NAMETAG_ID = 700
-
 
 func _on_btn_import_pressed() -> void:
 	importCoordinates("res://addons/SealMapper/coordinates.csv")
@@ -42,6 +43,13 @@ func importCoordinates(input: String) -> void:
 		return
 		
 	var node = EditorInterface.get_edited_scene_root()
+	var container_node
+	var container_name = "[SealMapper] LAYOUT"
+	if (node.has_node(container_name)):
+		container_node = node.get_node(container_name)
+	else:
+		container_node = __createNode(container_name, node)
+		
 	var line_num = 0
 	while not file.eof_reached():
 		var line = file.get_line().strip_edges()
@@ -60,7 +68,7 @@ func importCoordinates(input: String) -> void:
 		## print("	- [%d]: x: %.2f , y: %.2f , z: %.2f" % [line_num + 1, x, y, z])
 		
 		# spawn objects at locations
-		__instantiateObj(HIGHWAY_SIGN_POLE_01, "SealMapper_" + str(line_num), pos, node, -1)
+		__instantiateObj(HIGHWAY_SIGN_POLE_01, "SealMapper_" + str(line_num), pos, container_node, -1)
 		
 		line_num += 1
 		#continue loop ( reading file )
@@ -113,14 +121,28 @@ func __generateHQSpawnPoints(node: Node):
 			if (team_hq_node.has_node(node_name)):
 				print("[~][SealMapper] skipping %s" % node_name)
 				continue
-			continue
 			# create spawn point
-			__instantiateObj(SPAWN_POINT, node_name, origin, node, -1)
+			__instantiateObj(SPAWN_POINT, node_name, origin, team_hq_node, -1)
 			print("[+][SealMapper] created spawn point with name %s for team %d" %[node_name, ID])
+		
+		# add the AI Spawner
+		var spawner_name = "AI_Spawner_" + str(ID)
+		if (team_hq_node.has_node(spawner_name)):
+			print("[~][SealMapper] skipping %s" % spawner_name)
+			continue
+		__instantiateObj(AI_SPAWNER, spawner_name, origin, team_hq_node, SPAWNER_ID + i)
+		print("[+][SealMapper] created ai spawner with name %s for team %d" %[spawner_name, ID])
 
 # node = SceneRoot
 func __generateIcons(node: Node) -> void:
 	var origin = Vector3(0,0,0)
+	var container_node
+	var container_name = "[SealMapper] ICONS"
+	if (node.has_node(container_name)):
+		container_node = node.get_node(container_name)
+	else:
+		container_node = __createNode(container_name, node)
+	
 	for i in range(32):
 		var node_name = "WorldIcon_NameTag_" + str(i + 1)
 		if (node.has_node(node_name)):
@@ -128,12 +150,19 @@ func __generateIcons(node: Node) -> void:
 			continue
 		# create icon
 		var ID = NAMETAG_ID + i
-		__instantiateObj(WORLD_ICON, node_name, origin, node, ID)
+		__instantiateObj(WORLD_ICON, node_name, origin, container_node, ID)
 		print("[+][SealMapper] created icon with name %s & id %s" % [node_name, ID])
 
 # node = SceneRoot
 func __generateSpectatorObjects(node: Node) -> void:
 	var origin = Vector3(10,10,10)
+	var container_node
+	var container_name = "[SealMapper] SPECTATORS"
+	if (node.has_node(container_name)):
+		container_node = node.get_node(container_name)
+	else:
+		container_node = __createNode(container_name, node)
+		
 	for i in range(2):
 		var node_name = "Spectator_Object_" + str(i)
 		if (node.has_node(node_name)):
@@ -141,17 +170,29 @@ func __generateSpectatorObjects(node: Node) -> void:
 			continue
 		# create object
 		var ID = SPECTATOR_ID + i
-		__instantiateObj(SHELL_CASINGS_01, node_name, origin, node, ID)
+		__instantiateObj(SHELL_CASINGS_01, node_name, origin, container_node, ID)
 		print("[+][SealMapper] created spectator object with id: %d" % ID)
 
+# creates a node which will act as a folder
+func __createNode(node_name: String, parentNode: Node) -> Node3D:
+	var rootNode = EditorInterface.get_edited_scene_root()
+	var new_node = Node3D.new()
+	parentNode.add_child(new_node)
+	new_node.name = node_name
+	new_node.owner = rootNode
+	new_node.scene_file_path = ""
+	return new_node
+
 # does exactly what the name implies
+# parentNode is where the object will be added as a child
 func __instantiateObj(item: PackedScene, node_name: String, origin: Vector3, parentNode: Node, id: int) -> void:
 	var OBJ = item.instantiate()
+	var rootNode = EditorInterface.get_edited_scene_root()
 	parentNode.add_child(OBJ)
 	OBJ.ObjId = id
 	OBJ.name = node_name
 	OBJ.position = origin
-	OBJ.owner = parentNode
+	OBJ.owner = rootNode  # Must be scene root for visibility in Scene panel
 	OBJ.scene_file_path = ""
 
 # spawns a 2x2x2 red cube with slight glow ( does not render in game )

@@ -17,6 +17,12 @@ text = "AUTO-GENERATE NAME TAGS"
 layout_mode = 2
 text = "AUTO-GENERATE SPECTATOR OBJECTS"
 
+[node name="btn_createSpawnPoints" type="Button" parent="."]
+layout_mode = 2
+text = "AUTO-GENERATE SPAWN POINTS
+"
+
 [connection signal="pressed" from="btn_import" to="." method="_on_btn_import_pressed"]
 [connection signal="pressed" from="btn_createIcons" to="." method="_on_btn_create_icons_pressed"]
 [connection signal="pressed" from="btn_createSpectators" to="." method="_on_btn_create_spectators_pressed"]
+[connection signal="pressed" from="btn_createSpawnPoints" to="." method="_on_btn_create_spawn_points_pressed"]
